@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_starter/app/router.dart';
 import 'package:flutter_starter/features/posts/presentation/providers/posts_providers.dart';
 import 'package:flutter_starter/features/posts/presentation/widgets/post_tile.dart';
+import 'package:flutter_starter/features/settings/presentation/widgets/theme_mode_menu_button.dart';
 import 'package:flutter_starter/l10n/l10n.dart';
 import 'package:flutter_starter/shared/widgets/empty_view.dart';
 import 'package:flutter_starter/shared/widgets/error_view.dart';
@@ -18,7 +19,10 @@ class PostsScreen extends ConsumerWidget {
     final posts = ref.watch(postsListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.postsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.postsTitle),
+        actions: const [ThemeModeMenuButton()],
+      ),
       body: switch (posts) {
         AsyncData(:final value) when value.isEmpty => EmptyView(
           message: l10n.emptyPosts,
