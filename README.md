@@ -39,7 +39,7 @@ Code is organized by feature, and each feature has up to three layers.
 ```
 lib/
   main.dart            read startup prefs, ProviderScope, runApp
-  app/                 App widget, router, themes
+  app/                 App widget, router, routes (AppRoutes), themes
   core/                config, error, network (Dio), storage (preferences)
   l10n/                ARB files, generated localizations, context.l10n, errorMessage
   features/
@@ -58,15 +58,19 @@ test/                  mirrors lib/
 
 ```
 presentation  -->  domain  <--  data
-      \             |            /
-       +----------> core <------+
+   |   \            |           /  ^
+   |    +---------> core <-----+   |
+   |                               |
+   +---- wiring providers only ----+
 ```
 
-- `presentation` talks to repositories only. It never imports `package:dio` or `core/storage`.
-- `domain` imports nothing from Flutter, Dio, or JSON packages. Plain Dart: entities and repository contracts.
+- `presentation` talks to repositories only. It imports domain types (`Post`, `PostsRepository`) and the wiring *provider* from `data/` (`postsRepositoryProvider`), never an `*Impl` class. It never imports `package:dio` or `core/storage`.
+- `domain` imports nothing from Flutter, Dio, or JSON packages. It is framework-free Dart (Freezed annotations allowed): entities and repository contracts.
 - `data` implements the domain contracts and is the only place that knows about HTTP and JSON.
 - `core` can be used by every layer.
-- Wiring providers (`postsRepositoryProvider`) live in `data/` next to their implementation and expose the domain type.
+- Wiring providers (`postsRepositoryProvider`) live in `data/` next to their implementation and expose the domain type, so presentation depends on the contract even though it imports the provider from `data/`.
+- `shared/` never imports `app/`. When a shared widget needs app behaviour (such as navigating home), it takes a callback that `app/` supplies.
+- Features link to routes through `AppRoutes` in `lib/app/routes.dart`, never through `lib/app/router.dart`, which imports the feature screens.
 
 ### The domain layer is optional
 
@@ -132,7 +136,7 @@ Providers are the dependency graph. There is no get_it, no global singleton and 
 - **Where they live.** Wiring providers (`dioProvider`, `postsRemoteDataSourceProvider`, `postsRepositoryProvider`) sit next to the class they build. UI-facing providers go in `presentation/providers/`.
 - **keepAlive policy.** Process-wide singletons use `@Riverpod(keepAlive: true)`: `dioProvider`, `appPreferencesProvider`, `settingsRepositoryProvider`, `routerProvider`, and the theme providers. Everything else is auto-dispose, which is the default: data sources, repositories, and screen data such as `postsListProvider` and `postDetailProvider`. When a screen is left, its data is released and refetched next time.
 - **Startup values.** `main()` reads the saved theme before `runApp` and injects it with a `ProviderScope` override (`initialThemeModeProvider`), so there is no theme flicker. Use the same pattern for any preference needed at boot.
-- **Async data.** Providers return `Future<T>`; screens `watch` them and switch on the `AsyncValue` (loading, error, data). The Retry button calls `ref.invalidate(...)`.
+- **Async data.** Providers return `Future<T>`; screens `watch` them and switch on the `AsyncValue` (see "Screen pattern" below). The Retry button calls `ref.invalidate(...)`.
 
 ### Auto-retry is disabled
 
@@ -156,9 +160,10 @@ ProviderContainer.test(
 Errors are typed exceptions, not `Result` or `Either`. Riverpod already captures thrown errors in `AsyncError`.
 
 - `sealed class AppException` (`lib/core/error/app_exception.dart`) has the subtypes `NetworkException` (no connection or timeout), `ServerException(statusCode)`, `NotFoundException` (404), `ParsingException` and `UnknownException`.
-- Data sources wrap every network call in `guardApiCall(() async { ... })` (`lib/core/network/guard_api_call.dart`). It is the single place that translates `DioException` and decoding failures (`TypeError`, `FormatException`, `CheckedFromJsonException`) into an `AppException`. Repositories and everything above only ever see `AppException`.
+- Data sources wrap every network call in `guardApiCall(() async { ... })` (`lib/core/network/guard_api_call.dart`). It is the single place that translates failures into an `AppException`: `DioException` through `toAppException()` (a body Dio cannot decode arrives as `DioExceptionType.unknown` wrapping a `FormatException` and becomes a `ParsingException`), decoding failures (`TypeError`, `FormatException`, `CheckedFromJsonException`) into `ParsingException`, and anything else into `UnknownException`. The mapped exception keeps the original stack trace. Repositories and everything above only ever see `AppException`.
 - In presentation, `errorMessage(error, l10n)` (`lib/l10n/l10n.dart`) maps an error to a localized message with an exhaustive `switch` over the sealed type. Adding a subtype is a compile error until the mapping handles it. Any non-`AppException` maps to the generic unknown message.
 - `ErrorView` (in `shared/widgets`) shows that message with a Retry button.
+- Unknown or invalid routes show `NotFoundView`, whose "Go to home" button calls an `onGoHome` callback. The router supplies it (`context.go(AppRoutes.posts)`), so `shared/` stays unaware of the app's routes.
 
 ```dart
 // data source
@@ -167,6 +172,47 @@ Future<PostDto> fetchPost(int id) => guardApiCall(() async {
   return PostDto.fromJson(response.data as Map<String, dynamic>);
 });
 ```
+
+### Screen pattern
+
+On a refresh or invalidate, Riverpod 3 keeps the previous value and error on the new state. A screen's `switch` therefore checks, in this order:
+
+1. **Data** (`AsyncValue(:final value?)`): show it, including while it refreshes and after a refresh that failed.
+2. **A settled error with no data** (`AsyncError(isLoading: false)`): show `ErrorView`.
+3. **Anything else is loading**: the first load, or a Retry in flight. Show `LoadingView`, not the stale error.
+
+```dart
+body: switch (posts) {
+  AsyncValue(:final value?) => RefreshIndicator(
+    onRefresh: () => _refresh(ref),
+    child: value.isEmpty ? _EmptyPosts(...) : _PostsList(posts: value),
+  ),
+  AsyncError(:final error, isLoading: false) => ErrorView(
+    message: errorMessage(error, l10n),
+    onRetry: () => ref.invalidate(postsListProvider),
+  ),
+  _ => const LoadingView(),
+},
+```
+
+Pull-to-refresh (`lib/features/posts/presentation/screens/posts_screen.dart`):
+
+- `onRefresh` never throws. It invalidates the provider, awaits `ref.read(provider.future)` and swallows the error, because the provider's state already carries it. Letting it escape would raise an unhandled error.
+- A failed refresh keeps the stale list. A `ref.listen` shows the localized message in a `SnackBar` when the new state is an `AsyncError` that still has a value and is not loading:
+
+  ```dart
+  ref.listen(postsListProvider, (_, next) {
+    if (next case AsyncError(:final error, hasValue: true, isLoading: false)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(errorMessage(error, l10n))));
+    }
+  });
+  ```
+
+- Both the list and the empty state sit in a scrollable with `AlwaysScrollableScrollPhysics`, so a short list or an empty one can still be pulled to refresh.
+
+The full-screen `ErrorView` is only for when there is no data to show.
 
 ## Localization
 
@@ -191,7 +237,7 @@ Preferences follow one pattern, shown by the theme mode:
 1. **`AppPreferences`** (`lib/core/storage/app_preferences.dart`) wraps `SharedPreferencesAsync` with typed methods per key. It stores primitives only (the theme is saved as its name string).
 2. **A repository** (`features/settings/data/settings_repository.dart`) maps primitives to app types (`ThemeMode`, falling back to `ThemeMode.system` for missing or unknown values). Only repositories touch `AppPreferences`.
 3. **A controller** (`features/settings/presentation/theme_mode_controller.dart`), a `@riverpod` Notifier, holds the current value, updates `state` immediately and then persists through the repository.
-4. If the value is needed at boot, `main()` reads it through the repository and overrides an `initial...Provider`.
+4. If the value is needed at boot, `main()` reads it through the repository and overrides an `initial...Provider`. That read must not throw (`getThemeMode` falls back to `ThemeMode.system` on any failure), so a broken preference never stops `runApp`.
 
 To add a preference: add a key plus getter/setter to `AppPreferences`, map it in a repository, expose a controller.
 
@@ -206,7 +252,9 @@ To add a preference: add a key plus getter/setter to `AppPreferences`, map it in
 | Repository | `posts_repository_impl_test.dart`, `settings_repository_test.dart` |
 | Provider with overridden repository | `posts_providers_test.dart` |
 | Controller persistence | `theme_mode_controller_test.dart` |
-| Widget (loading, error with retry, data) | `posts_screen_test.dart` |
+| Widget (loading, error, retry shows loading, failed refresh keeps data, empty refresh) | `posts_screen_test.dart` |
+| Data source with a real `Dio` and a fake `HttpClientAdapter` (malformed JSON body) | `posts_remote_data_source_test.dart` |
+| Routing (not found, go home) | `test/app/router_test.dart` |
 | Localization (EN and ES) | `test/l10n/l10n_test.dart` |
 
 - **`pumpApp`** (`test/helpers/pump_app.dart`) pumps a widget inside a `ProviderScope` (retry disabled) and a `MaterialApp` with the localization delegates and a configurable `locale`. Pass `overrides:` to swap providers.
@@ -225,8 +273,8 @@ Example: a `comments` feature that reads from the API.
 4. **Data source**: `data/datasources/...`, calling `ref.watch(dioProvider)` and wrapping calls in `guardApiCall`. Add its `@riverpod` provider.
 5. **Repository implementation** and its `@riverpod` provider, typed as the domain contract.
 6. **UI providers**: `presentation/providers/..._providers.dart` calling the repository.
-7. **Screen**: a `ConsumerWidget` that handles loading (`LoadingView`), error (`ErrorView` with `errorMessage` and `ref.invalidate`), empty (`EmptyView`) and data.
-8. **Route**: add a path constant to `AppRoutes` and a `GoRoute` in `lib/app/router.dart`.
+7. **Screen**: a `ConsumerWidget` that follows the "Screen pattern": data (and empty, `EmptyView`) first, then a settled error (`ErrorView` with `errorMessage` and `ref.invalidate`), then loading (`LoadingView`). If it supports pull-to-refresh, copy the refresh and `SnackBar` handling from `PostsScreen`.
+8. **Route**: add a path constant to `AppRoutes` in `lib/app/routes.dart` and a `GoRoute` in `lib/app/router.dart`.
 9. **Strings**: add keys to both ARB files.
 10. **Generate**: `fvm dart run build_runner build -d`, then commit the generated files.
 11. **Tests**: copy the templates above for each layer you added.
@@ -239,8 +287,8 @@ A new preference follows "Preferences" instead and usually needs only `data/` an
 The package is `flutter_starter`, the org `com.example`.
 
 1. Rename the package in `pubspec.yaml` (`name:`) and replace `package:flutter_starter/` with `package:your_app/` in every file under `lib/` and `test/`.
-2. Android: change `namespace` and `applicationId` in `android/app/build.gradle*`, and move `MainActivity.kt` to the matching directory under `android/app/src/main/kotlin/` with an updated `package` line.
-3. iOS: change `PRODUCT_BUNDLE_IDENTIFIER` (and the `RunnerTests` one) in `ios/Runner.xcodeproj/project.pbxproj`, and the display name in `ios/Runner/Info.plist`.
+2. Android: change `namespace` and `applicationId` in `android/app/build.gradle*`, move `MainActivity.kt` to the matching directory under `android/app/src/main/kotlin/` with an updated `package` line, and change the launcher name (`android:label`) in `android/app/src/main/AndroidManifest.xml`.
+3. iOS: change `PRODUCT_BUNDLE_IDENTIFIER` (and the `RunnerTests` one) in `ios/Runner.xcodeproj/project.pbxproj`, and `CFBundleDisplayName` and `CFBundleName` in `ios/Runner/Info.plist`.
 4. Change `appTitle` in both ARB files, then regenerate.
 5. Run `fvm flutter clean && fvm flutter pub get && fvm dart run build_runner build -d` and the full check.
 
@@ -259,5 +307,5 @@ fvm flutter pub get && fvm dart run build_runner build -d && test -z "$(git stat
 
 - Lints: `very_good_analysis`, plus `riverpod_lint`. `riverpod_lint` runs through the analyzer `plugins:` section in `analysis_options.yaml` (the analysis server plugin mechanism), not `custom_lint`. Generated files and `lib/l10n/app_localizations*.dart` are excluded from analysis. `public_member_api_docs` is off because this is an app, not a package.
 - Dependency versions were resolved by `flutter pub add` (latest compatible). No dependency conflicts occurred, so no fallbacks were applied: `riverpod_generator`, Freezed, `json_serializable`, `riverpod_lint` and `very_good_analysis` are all in use at their latest versions. If a future analyzer conflict appears, keep `riverpod_generator` + Freezed + `json_serializable`, drop `riverpod_lint` first, then downgrade `very_good_analysis`, and record the reason here.
-- The only lint suppression in hand-written code is `avoid_catching_errors` in `lib/core/network/guard_api_call.dart`. Catching `TypeError` there is deliberate: a failed cast while decoding JSON surfaces as one, and it must become a `ParsingException`. Do not add suppressions elsewhere without a comment explaining why.
+- Hand-written code has no lint suppressions. `guardApiCall` catches `on Object` and matches the error type in a `switch` (a failed cast while decoding JSON surfaces as a `TypeError` and must become a `ParsingException`), so it needs no `avoid_catching_errors` ignore. If a suppression is ever unavoidable, scope it to one line and add a comment explaining why.
 - Dio uses a 10 s connect timeout and a 15 s receive timeout, and a `LogInterceptor` in debug mode only.
