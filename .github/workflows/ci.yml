@@ -30,8 +30,15 @@ jobs:
       - name: Generate code
         run: dart run build_runner build -d
 
-      - name: Generated files must be up to date
-        run: git diff --exit-code
+      # git status also catches generated files that were never committed,
+      # which git diff ignores.
+      - name: Generated files must be committed and up to date
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Generated files are stale or uncommitted:"
+            git status --porcelain
+            exit 1
+          fi
 
       - name: Check formatting
         run: dart format --set-exit-if-changed .

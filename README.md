@@ -30,7 +30,7 @@ While developing, `fvm dart run build_runner watch -d` regenerates code on save.
 
 ### Generated files are committed
 
-`*.g.dart`, `*.freezed.dart` and `lib/l10n/app_localizations*.dart` are checked in, so the project builds on a fresh clone and PR diffs show what generation changed. If you edit an annotated source or an ARB file, regenerate and commit the output. CI runs the generators and fails on `git diff` if anything is stale.
+`*.g.dart`, `*.freezed.dart` and `lib/l10n/app_localizations*.dart` are checked in, so the project builds on a fresh clone and PR diffs show what generation changed. If you edit an annotated source or an ARB file, regenerate and commit the output. CI runs the generators and fails if `git status --porcelain` is not empty, so stale and never-committed generated files are both caught.
 
 ## Architecture
 
@@ -246,12 +246,12 @@ The package is `flutter_starter`, the org `com.example`.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on pushes and pull requests to `main`. It reads the Flutter version from `.fvmrc`, then runs: `pub get`, `build_runner build -d`, `git diff --exit-code` (generated files must be up to date), `dart format --set-exit-if-changed .`, `flutter analyze`, `flutter test`. Superseded runs on the same ref are cancelled.
+`.github/workflows/ci.yml` runs on pushes and pull requests to `main`. It reads the Flutter version from `.fvmrc`, then runs: `pub get`, `build_runner build -d`, a clean-tree check (`git status --porcelain` must print nothing, so generated files must be committed and up to date; on failure it prints the offending files), `dart format --set-exit-if-changed .`, `flutter analyze`, `flutter test`. Superseded runs on the same ref are cancelled.
 
-Run the same sequence locally before pushing:
+Run the same sequence locally before pushing (commit your work first, or the clean-tree check fails on it):
 
 ```sh
-fvm flutter pub get && fvm dart run build_runner build -d && git diff --exit-code \
+fvm flutter pub get && fvm dart run build_runner build -d && test -z "$(git status --porcelain)" \
   && fvm dart format --set-exit-if-changed . && fvm flutter analyze && fvm flutter test
 ```
 
