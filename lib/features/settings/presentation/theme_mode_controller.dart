@@ -16,6 +16,8 @@ class ThemeModeController extends _$ThemeModeController {
 
   /// Applies [mode] immediately, then saves it.
   Future<void> setThemeMode(ThemeMode mode) async {
+    // Optimistic: the UI updates at once; if saving fails, the choice still
+    // applies for this session but is not restored on the next launch.
     state = mode;
     await ref.read(settingsRepositoryProvider).setThemeMode(mode);
   }
