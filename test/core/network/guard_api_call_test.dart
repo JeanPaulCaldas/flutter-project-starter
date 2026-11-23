@@ -3,6 +3,8 @@ import 'package:flutter_starter/core/error/app_exception.dart';
 import 'package:flutter_starter/core/network/guard_api_call.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+Never _failToDecode() => throw const FormatException('bad json');
+
 void main() {
   test('returns the value on success', () async {
     expect(await guardApiCall(() async => 42), 42);
@@ -41,5 +43,25 @@ void main() {
       guardApiCall<int>(() async => throw const NetworkException()),
       throwsA(isA<NetworkException>()),
     );
+  });
+
+  test('maps any other error to UnknownException', () {
+    expect(
+      guardApiCall<int>(() async => throw StateError('boom')),
+      throwsA(
+        isA<UnknownException>().having((e) => e.cause, 'cause', isStateError),
+      ),
+    );
+  });
+
+  test('keeps the stack trace of the original failure', () async {
+    StackTrace? trace;
+    try {
+      await guardApiCall<int>(() async => _failToDecode());
+    } on ParsingException catch (_, st) {
+      trace = st;
+    }
+
+    expect(trace.toString(), contains('_failToDecode'));
   });
 }
