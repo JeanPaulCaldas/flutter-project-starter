@@ -1,0 +1,39 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_starter/app/app.dart';
+import 'package:flutter_starter/app/router.dart';
+import 'package:flutter_starter/features/posts/data/repositories/posts_repository_impl.dart';
+import 'package:flutter_starter/features/posts/domain/repositories/posts_repository.dart';
+import 'package:flutter_starter/l10n/app_localizations_en.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class _MockPostsRepository extends Mock implements PostsRepository;
+
+void main() {
+  final l10n = AppLocalizationsEn();
+
+  Future<ProviderContainer> pumpApp(WidgetTester tester) async {
+    final repo = _MockPostsRepository();
+    when(repo.getPosts).thenAnswer((_) async => []);
+    await tester.pumpWidget(
+      ProviderScope(
+        retry: (_, _) => null,
+        overrides: [postsRepositoryProvider.overrideWithValue(repo)],
+        child: const App(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return ProviderScope.containerOf(tester.element(find.byType(App)));
+  }
+
+  for (final location in ['/posts/abc', '/nope']) {
+    testWidgets('shows not found for $location', (tester) async {
+      final container = await pumpApp(tester);
+
+      container.read(routerProvider).go(location);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.pageNotFound), findsOneWidget);
+    });
+  }
+}
