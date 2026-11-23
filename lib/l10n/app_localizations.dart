@@ -170,6 +170,12 @@ abstract class AppLocalizations {
   /// **'Page not found'**
   String get pageNotFound;
 
+  /// No description provided for @goHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to home'**
+  String get goHome;
+
   /// No description provided for @themeSystem.
   ///
   /// In en, this message translates to:

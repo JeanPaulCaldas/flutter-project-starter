@@ -19,6 +19,7 @@
   "errorParsing": "We received data we couldn't understand.",
   "errorUnknown": "Something went wrong. Please try again.",
   "pageNotFound": "Page not found",
+  "goHome": "Go to home",
   "themeSystem": "System",
   "themeLight": "Light",
   "themeDark": "Dark",

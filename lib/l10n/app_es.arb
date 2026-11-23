@@ -12,6 +12,7 @@
   "errorParsing": "Recibimos datos que no pudimos interpretar.",
   "errorUnknown": "Algo salió mal. Inténtalo de nuevo.",
   "pageNotFound": "Página no encontrada",
+  "goHome": "Ir al inicio",
   "themeSystem": "Sistema",
   "themeLight": "Claro",
   "themeDark": "Oscuro",

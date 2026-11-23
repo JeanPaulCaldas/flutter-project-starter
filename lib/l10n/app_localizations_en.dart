@@ -50,6 +50,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pageNotFound => 'Page not found';
 
   @override
+  String get goHome => 'Go to home';
+
+  @override
   String get themeSystem => 'System';
 
   @override
