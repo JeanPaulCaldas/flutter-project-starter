@@ -11,11 +11,18 @@ class SettingsRepository {
 
   final AppPreferences _prefs;
 
-  /// Returns the saved [ThemeMode]; missing or unknown values yield
-  /// [ThemeMode.system].
+  /// Returns the saved [ThemeMode]; missing or unknown values, or a failed
+  /// read, yield [ThemeMode.system].
+  ///
+  /// Never throws: `main()` awaits this before `runApp`, and an unreadable
+  /// preference must not stop the app from starting.
   Future<ThemeMode> getThemeMode() async {
-    final stored = await _prefs.getThemeMode();
-    return ThemeMode.values.asNameMap()[stored] ?? ThemeMode.system;
+    try {
+      final stored = await _prefs.getThemeMode();
+      return ThemeMode.values.asNameMap()[stored] ?? ThemeMode.system;
+    } on Object {
+      return ThemeMode.system;
+    }
   }
 
   /// Persists [mode] by name.

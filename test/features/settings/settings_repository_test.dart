@@ -33,6 +33,13 @@ void main() {
     expect(await repository.getThemeMode(), ThemeMode.system);
   });
 
+  test('getThemeMode returns system when reading fails', () async {
+    when(() => prefs.getThemeMode())
+        .thenAnswer((_) async => throw Exception('storage unavailable'));
+
+    expect(await repository.getThemeMode(), ThemeMode.system);
+  });
+
   test('setThemeMode persists the mode name', () async {
     when(() => prefs.setThemeMode(any())).thenAnswer((_) async {});
 
