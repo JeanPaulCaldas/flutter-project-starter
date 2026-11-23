@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_starter/app/router.dart';
+import 'package:flutter_starter/app/routes.dart';
 import 'package:flutter_starter/features/posts/presentation/providers/posts_providers.dart';
 import 'package:flutter_starter/features/posts/presentation/widgets/post_tile.dart';
 import 'package:flutter_starter/features/settings/presentation/widgets/theme_mode_menu_button.dart';

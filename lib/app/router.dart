@@ -1,3 +1,4 @@
+import 'package:flutter_starter/app/routes.dart';
 import 'package:flutter_starter/features/posts/presentation/screens/post_detail_screen.dart';
 import 'package:flutter_starter/features/posts/presentation/screens/posts_screen.dart';
 import 'package:flutter_starter/shared/widgets/not_found_view.dart';
@@ -5,14 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'router.g.dart';
-
-/// Route paths used across the app.
-abstract final class AppRoutes {
-  static const posts = '/';
-  static const postDetail = '/posts/:id';
-
-  static String postDetailPath(int id) => '/posts/$id';
-}
 
 /// The app's [GoRouter]; kept alive so navigation state survives rebuilds.
 @Riverpod(keepAlive: true)
