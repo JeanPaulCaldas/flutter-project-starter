@@ -19,5 +19,6 @@ Dio dio(Ref ref) {
   if (kDebugMode) {
     client.interceptors.add(LogInterceptor());
   }
+  ref.onDispose(client.close);
   return client;
 }
