@@ -43,4 +43,10 @@ void main() {
 
     await expectLater(repository.getPosts(), throwsA(isA<NetworkException>()));
   });
+
+  test('getPost propagates AppException unchanged', () async {
+    when(() => remote.fetchPost(1)).thenThrow(const NotFoundException());
+
+    await expectLater(repository.getPost(1), throwsA(isA<NotFoundException>()));
+  });
 }

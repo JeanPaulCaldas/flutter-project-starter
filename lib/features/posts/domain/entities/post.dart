@@ -1,6 +1,3 @@
-// Freezed's redirecting factories cannot use the `new` declaration form.
-// ignore_for_file: unnecessary_type_name_in_constructor
-
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'post.freezed.dart';

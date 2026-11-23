@@ -8,7 +8,7 @@ part 'posts_repository_impl.g.dart';
 /// [PostsRepository] backed by the remote data source.
 class PostsRepositoryImpl implements PostsRepository {
   /// Creates a repository reading from [_remote].
-  const new(this._remote);
+  const PostsRepositoryImpl(this._remote);
 
   final PostsRemoteDataSource _remote;
 
