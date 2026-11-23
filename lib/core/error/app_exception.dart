@@ -67,10 +67,13 @@ extension DioExceptionMapper on DioException {
         final code = response?.statusCode;
         return code == 404 ? const NotFoundException() : ServerException(code);
       case DioExceptionType.unknown:
-        final cause = error;
-        return cause is SocketException
-            ? const NetworkException()
-            : UnknownException(cause);
+        // Dio reports a body its transformer cannot decode as `unknown`
+        // wrapping the FormatException.
+        return switch (error) {
+          SocketException() => const NetworkException(),
+          final FormatException cause => ParsingException(cause),
+          final cause => UnknownException(cause),
+        };
       case DioExceptionType.cancel:
       case DioExceptionType.badCertificate:
         return UnknownException(this);

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_starter/core/error/app_exception.dart';
 import 'package:flutter_starter/features/posts/data/datasources/posts_remote_data_source.dart';
@@ -5,6 +7,30 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockDio extends Mock implements Dio;
+
+/// Answers every request with [body] as a JSON response, so the real Dio
+/// transformer runs.
+class _JsonBodyAdapter implements HttpClientAdapter {
+  const new(this.body);
+
+  final String body;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => ResponseBody.fromString(
+    body,
+    200,
+    headers: {
+      Headers.contentTypeHeader: [Headers.jsonContentType],
+    },
+  );
+
+  @override
+  void close({bool force = false}) {}
+}
 
 Response<dynamic> _ok(String path, Object? data) => Response<dynamic>(
   requestOptions: RequestOptions(path: path),
@@ -79,5 +105,16 @@ void main() {
     );
 
     await expectLater(source.fetchPosts(), throwsA(isA<NetworkException>()));
+  });
+
+  test('fetchPost throws ParsingException on a malformed JSON body', () async {
+    final realDio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+      ..httpClientAdapter = const _JsonBodyAdapter('{"id": 1, "userId":');
+    addTearDown(realDio.close);
+
+    await expectLater(
+      PostsRemoteDataSource(realDio).fetchPost(1),
+      throwsA(isA<ParsingException>()),
+    );
   });
 }

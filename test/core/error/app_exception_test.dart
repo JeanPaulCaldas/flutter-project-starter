@@ -55,6 +55,15 @@ void main() {
       expect(e.toAppException(), isA<NetworkException>());
     });
 
+    test('maps unknown with FormatException to ParsingException', () {
+      const cause = FormatException('bad json');
+      final e = _dioError(DioExceptionType.unknown, error: cause);
+      expect(
+        e.toAppException(),
+        isA<ParsingException>().having((p) => p.cause, 'cause', cause),
+      );
+    });
+
     test('maps unknown with other error to UnknownException', () {
       final e = _dioError(DioExceptionType.unknown, error: StateError('x'));
       expect(e.toAppException(), isA<UnknownException>());
