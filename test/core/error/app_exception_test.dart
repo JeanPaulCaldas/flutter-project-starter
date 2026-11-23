@@ -27,6 +27,7 @@ void main() {
       DioExceptionType.sendTimeout,
       DioExceptionType.receiveTimeout,
       DioExceptionType.connectionError,
+      DioExceptionType.transformTimeout,
     ]) {
       test('maps $type to NetworkException', () {
         expect(_dioError(type).toAppException(), isA<NetworkException>());
