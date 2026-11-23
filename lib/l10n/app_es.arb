@@ -1,0 +1,18 @@
+{
+  "@@locale": "es",
+  "appTitle": "Flutter Starter",
+  "postsTitle": "Publicaciones",
+  "postDetailTitle": "Publicación",
+  "retry": "Reintentar",
+  "emptyPosts": "Aún no hay publicaciones.",
+  "errorNetwork": "No se puede conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+  "errorServer": "El servidor devolvió un error ({statusCode}). Inténtalo de nuevo más tarde.",
+  "errorNotFound": "No encontramos lo que buscabas.",
+  "errorParsing": "Recibimos datos que no pudimos interpretar.",
+  "errorUnknown": "Algo salió mal. Inténtalo de nuevo.",
+  "pageNotFound": "Página no encontrada",
+  "themeSystem": "Sistema",
+  "themeLight": "Claro",
+  "themeDark": "Oscuro",
+  "themeMenuTooltip": "Cambiar tema"
+}
