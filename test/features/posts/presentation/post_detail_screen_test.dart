@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter_starter/core/error/app_exception.dart';
 import 'package:flutter_starter/features/posts/data/repositories/posts_repository_impl.dart';
 import 'package:flutter_starter/features/posts/domain/entities/post.dart';
 import 'package:flutter_starter/features/posts/domain/repositories/posts_repository.dart';
 import 'package:flutter_starter/features/posts/presentation/screens/post_detail_screen.dart';
 import 'package:flutter_starter/l10n/app_localizations_en.dart';
+import 'package:flutter_starter/shared/widgets/error_view.dart';
+import 'package:flutter_starter/shared/widgets/loading_view.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -12,6 +16,7 @@ import '../../../helpers/pump_app.dart';
 class _MockPostsRepository extends Mock implements PostsRepository;
 
 void main() {
+  const post = Post(id: 1, userId: 1, title: 'Hello post', body: 'Body text');
   final l10n = AppLocalizationsEn();
   late _MockPostsRepository repo;
 
@@ -26,10 +31,7 @@ void main() {
   }
 
   testWidgets('shows title and body', (tester) async {
-    when(() => repo.getPost(1)).thenAnswer(
-      (_) async =>
-          const Post(id: 1, userId: 1, title: 'Hello post', body: 'Body text'),
-    );
+    when(() => repo.getPost(1)).thenAnswer((_) async => post);
 
     await pump(tester, 1);
 
@@ -43,5 +45,29 @@ void main() {
     await pump(tester, 999);
 
     expect(find.text(l10n.errorNotFound), findsOneWidget);
+  });
+
+  testWidgets('shows loading, not the stale error, while retrying', (
+    tester,
+  ) async {
+    final retry = Completer<Post>();
+    var calls = 0;
+    when(() => repo.getPost(1)).thenAnswer((_) {
+      calls++;
+      if (calls == 1) return Future.error(const NetworkException());
+      return retry.future;
+    });
+
+    await pump(tester, 1);
+    await tester.tap(find.text(l10n.retry));
+    await tester.pump();
+
+    expect(find.byType(LoadingView), findsOneWidget);
+    expect(find.byType(ErrorView), findsNothing);
+
+    retry.complete(post);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hello post'), findsOneWidget);
   });
 }

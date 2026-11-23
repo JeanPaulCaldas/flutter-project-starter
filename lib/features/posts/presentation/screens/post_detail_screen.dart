@@ -18,7 +18,9 @@ class PostDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.postDetailTitle)),
       body: switch (post) {
-        AsyncData(:final value) => SingleChildScrollView(
+        // Same order as PostsScreen: data, then a settled error, then
+        // loading (first load, or a retry after an error).
+        AsyncValue(:final value?) => SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,7 +34,7 @@ class PostDetailScreen extends ConsumerWidget {
             ],
           ),
         ),
-        AsyncError(:final error) => ErrorView(
+        AsyncError(:final error, isLoading: false) => ErrorView(
           message: errorMessage(error, l10n),
           onRetry: () => ref.invalidate(postDetailProvider(postId)),
         ),

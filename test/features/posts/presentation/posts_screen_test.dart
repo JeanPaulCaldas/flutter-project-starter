@@ -6,8 +6,10 @@ import 'package:flutter_starter/features/posts/domain/entities/post.dart';
 import 'package:flutter_starter/features/posts/domain/repositories/posts_repository.dart';
 import 'package:flutter_starter/features/posts/presentation/screens/posts_screen.dart';
 import 'package:flutter_starter/l10n/app_localizations_en.dart';
+import 'package:flutter_starter/shared/widgets/error_view.dart';
 import 'package:flutter_starter/shared/widgets/loading_view.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/pump_app.dart';
@@ -73,5 +75,73 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.emptyPosts), findsOneWidget);
+  });
+
+  testWidgets('shows loading, not the stale error, while retrying', (
+    tester,
+  ) async {
+    final retry = Completer<List<Post>>();
+    var calls = 0;
+    when(() => repo.getPosts()).thenAnswer((_) {
+      calls++;
+      if (calls == 1) return Future.error(const NetworkException());
+      return retry.future;
+    });
+
+    await pump(tester);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.retry));
+    await tester.pump();
+
+    expect(find.byType(LoadingView), findsOneWidget);
+    expect(find.byType(ErrorView), findsNothing);
+
+    retry.complete([post]);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hello post'), findsOneWidget);
+  });
+
+  testWidgets('keeps the list and shows a SnackBar when a refresh fails', (
+    tester,
+  ) async {
+    var calls = 0;
+    when(() => repo.getPosts()).thenAnswer((_) async {
+      calls++;
+      if (calls == 1) return [post];
+      throw const NetworkException();
+    });
+
+    await pump(tester);
+    await tester.pumpAndSettle();
+    await tester.fling(find.text('Hello post'), const Offset(0, 300), 1000);
+    await tester.pumpAndSettle();
+
+    expect(calls, 2);
+    expect(find.text('Hello post'), findsOneWidget);
+    expect(find.byType(ErrorView), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(SnackBar),
+        matching: find.text(l10n.errorNetwork),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the empty state can be pulled to refresh', (tester) async {
+    var calls = 0;
+    when(() => repo.getPosts()).thenAnswer((_) async {
+      calls++;
+      return calls == 1 ? [] : [post];
+    });
+
+    await pump(tester);
+    await tester.pumpAndSettle();
+    await tester.fling(find.text(l10n.emptyPosts), const Offset(0, 300), 1000);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hello post'), findsOneWidget);
   });
 }
