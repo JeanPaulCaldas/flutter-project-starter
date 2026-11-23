@@ -16,6 +16,3 @@ linter:
   rules:
     # This is an app, not a published package.
     public_member_api_docs: false
-    # Classic `ClassName(...)` constructors are used everywhere because Freezed
-    # redirecting factories cannot use the `new` form.
-    unnecessary_type_name_in_constructor: false

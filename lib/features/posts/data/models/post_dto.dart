@@ -6,20 +6,15 @@ part 'post_dto.g.dart';
 
 /// Wire representation of a post.
 @freezed
-abstract class PostDto with _$PostDto {
-  /// Creates a post DTO.
-  const factory PostDto({
-    required int id,
-    required int userId,
-    required String title,
-    required String body,
-  }) = _PostDto;
-
+@JsonSerializable()
+class const PostDto({
+  required final int id,
+  required final int userId,
+  required final String title,
+  required final String body,
+}) with _$PostDto {
   /// Parses a JSON object.
-  factory PostDto.fromJson(Map<String, dynamic> json) =>
-      _$PostDtoFromJson(json);
-
-  const PostDto._();
+  factory fromJson(Map<String, dynamic> json) => _$PostDtoFromJson(json);
 
   /// Converts to the domain entity.
   Post toEntity() => Post(id: id, userId: userId, title: title, body: body);

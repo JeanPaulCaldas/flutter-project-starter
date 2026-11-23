@@ -34,6 +34,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get errorServerUnknownStatus =>
+      'El servidor devolvió un error. Inténtalo de nuevo más tarde.';
+
+  @override
   String get errorNotFound => 'No encontramos lo que buscabas.';
 
   @override

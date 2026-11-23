@@ -18,10 +18,10 @@ void main() {
       expect(errorMessage(const ServerException(503), l10n), contains('503'));
     });
 
-    test('renders a placeholder when the status code is missing', () {
+    test('uses a status-free message when the status code is missing', () {
       expect(
         errorMessage(const ServerException(null), l10n),
-        l10n.errorServer('?'),
+        l10n.errorServerUnknownStatus,
       );
     });
 

@@ -4,12 +4,9 @@ part 'post.freezed.dart';
 
 /// A blog post.
 @freezed
-abstract class Post with _$Post {
-  /// Creates a post.
-  const factory Post({
-    required int id,
-    required int userId,
-    required String title,
-    required String body,
-  }) = _Post;
-}
+class const Post({
+  required final int id,
+  required final int userId,
+  required final String title,
+  required final String body,
+}) with _$Post;

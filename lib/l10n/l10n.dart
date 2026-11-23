@@ -10,14 +10,15 @@ extension AppLocalizationsX on BuildContext {
 
 /// Maps any error to a localized, user-facing message.
 ///
-/// A [ServerException] without a status code renders `?` in its place.
+/// A [ServerException] without a status code uses a message without one.
 String errorMessage(Object error, AppLocalizations l10n) {
   if (error is! AppException) return l10n.errorUnknown;
   return switch (error) {
     NetworkException() => l10n.errorNetwork,
-    ServerException(:final statusCode) => l10n.errorServer(
-      statusCode?.toString() ?? '?',
-    ),
+    ServerException(:final statusCode) =>
+      statusCode == null
+          ? l10n.errorServerUnknownStatus
+          : l10n.errorServer(statusCode.toString()),
     NotFoundException() => l10n.errorNotFound,
     ParsingException() => l10n.errorParsing,
     UnknownException() => l10n.errorUnknown,

@@ -9,7 +9,7 @@ part 'posts_remote_data_source.g.dart';
 /// REST access to posts. Failures surface as `AppException`.
 class PostsRemoteDataSource {
   /// Creates a data source backed by [_dio].
-  const PostsRemoteDataSource(this._dio);
+  const new(this._dio);
 
   final Dio _dio;
 

@@ -14,6 +14,7 @@
       }
     }
   },
+  "errorServerUnknownStatus": "The server returned an error. Please try again later.",
   "errorNotFound": "We couldn't find what you were looking for.",
   "errorParsing": "We received data we couldn't understand.",
   "errorUnknown": "Something went wrong. Please try again.",

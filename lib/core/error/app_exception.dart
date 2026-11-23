@@ -4,12 +4,12 @@ import 'package:dio/dio.dart';
 
 /// Application-level failures, independent of the transport library.
 sealed class AppException implements Exception {
-  const AppException();
+  const new();
 }
 
 /// No connectivity, or the request timed out.
 final class NetworkException extends AppException {
-  const NetworkException();
+  const new();
 
   @override
   String toString() => 'NetworkException';
@@ -17,7 +17,7 @@ final class NetworkException extends AppException {
 
 /// The server answered with an error status.
 final class ServerException extends AppException {
-  const ServerException(this.statusCode);
+  const new(this.statusCode);
 
   final int? statusCode;
 
@@ -27,7 +27,7 @@ final class ServerException extends AppException {
 
 /// The requested resource does not exist (HTTP 404).
 final class NotFoundException extends AppException {
-  const NotFoundException();
+  const new();
 
   @override
   String toString() => 'NotFoundException';
@@ -35,7 +35,7 @@ final class NotFoundException extends AppException {
 
 /// The response could not be parsed into the expected shape.
 final class ParsingException extends AppException {
-  const ParsingException([this.cause]);
+  const new([this.cause]);
 
   final Object? cause;
 
@@ -45,7 +45,7 @@ final class ParsingException extends AppException {
 
 /// Any failure that does not fit another category.
 final class UnknownException extends AppException {
-  const UnknownException([this.cause]);
+  const new([this.cause]);
 
   final Object? cause;
 

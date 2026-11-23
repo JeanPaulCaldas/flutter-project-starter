@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'The server returned an error ({statusCode}). Please try again later.'**
   String errorServer(String statusCode);
 
+  /// No description provided for @errorServerUnknownStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'The server returned an error. Please try again later.'**
+  String get errorServerUnknownStatus;
+
   /// No description provided for @errorNotFound.
   ///
   /// In en, this message translates to:
