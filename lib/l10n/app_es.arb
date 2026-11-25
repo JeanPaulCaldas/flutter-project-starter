@@ -9,7 +9,7 @@
   "errorServer": "El servidor devolvió un error ({statusCode}). Inténtalo de nuevo más tarde.",
   "errorServerUnknownStatus": "El servidor devolvió un error. Inténtalo de nuevo más tarde.",
   "errorNotFound": "No encontramos lo que buscabas.",
-  "errorParsing": "Recibimos datos que no pudimos interpretar.",
+  "errorParsing": "El servidor envió una respuesta que no pudimos leer.",
   "errorUnknown": "Algo salió mal. Inténtalo de nuevo.",
   "pageNotFound": "Página no encontrada",
   "goHome": "Ir al inicio",

@@ -41,7 +41,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorNotFound => 'We couldn\'t find what you were looking for.';
 
   @override
-  String get errorParsing => 'We received data we couldn\'t understand.';
+  String get errorParsing => 'The server sent a response we couldn\'t read.';
 
   @override
   String get errorUnknown => 'Something went wrong. Please try again.';

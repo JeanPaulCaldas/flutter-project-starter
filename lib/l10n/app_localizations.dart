@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorParsing.
   ///
   /// In en, this message translates to:
-  /// **'We received data we couldn\'t understand.'**
+  /// **'The server sent a response we couldn\'t read.'**
   String get errorParsing;
 
   /// No description provided for @errorUnknown.
