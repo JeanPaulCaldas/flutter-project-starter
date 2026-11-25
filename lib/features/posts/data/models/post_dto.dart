@@ -6,7 +6,7 @@ part 'post_dto.g.dart';
 
 /// Wire representation of a post.
 @freezed
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class const PostDto({
   required final int id,
   required final int userId,
