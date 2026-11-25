@@ -8,10 +8,10 @@ Platforms: Android and iOS. Out of scope: caching/offline, auth, native flavors,
 
 ## Requirements
 
-- [fvm](https://fvm.app) 3 or newer. Install or upgrade with `brew upgrade fvm` or `dart pub global activate fvm`.
+- [fvm](https://fvm.app) **4 or newer** (tested with 4.3.2). Install it once, preferably with Homebrew (`brew install fvm`, upgrade with `brew upgrade fvm`); `dart pub global activate fvm` also works, but do not install both, or whichever comes first in `PATH` wins silently.
 - Flutter **3.50.1**, pinned in `.fvmrc` (`{"flutter": "3.50.1"}`). `fvm install` fetches it.
 
-fvm 2.x reads `.fvm/fvm_config.json` instead of `.fvmrc` and will not pick up the pin; upgrade to fvm 3+. The `.fvm/` folder is git-ignored.
+fvm 2.x reads `.fvm/fvm_config.json` instead of `.fvmrc` and will not pick up the pin. fvm rewrites `.fvmrc` and `.vscode/settings.json` on `fvm install` / `fvm use`, so everyone on the team should use the same major version to avoid formatting-only diffs. The `.fvm/` folder is git-ignored.
 
 Run every Flutter and Dart command through `fvm` (`fvm flutter ...`, `fvm dart ...`).
 
