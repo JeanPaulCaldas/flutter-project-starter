@@ -28,6 +28,14 @@ fvm flutter run --dart-define-from-file=config/dev.json
 
 While developing, `fvm dart run build_runner watch -d` regenerates code on save.
 
+### VS Code
+
+`.vscode/` is committed:
+
+- `settings.json` points the Dart/Flutter extension at the fvm-pinned SDK (`"dart.flutterSdkPath": ".fvm/flutter_sdk"`). Run `fvm install` first so the `.fvm/flutter_sdk` link exists. Without this setting VS Code uses your global Flutter, and an older SDK reports errors such as "This requires the experimental 'primary-constructors' language feature" on the Freezed models. Reload the window after `fvm install`.
+- `launch.json` has **Debug**, **Profile** and **Release** configurations, all passing `--dart-define-from-file=config/dev.json`. Pick the device in the status bar and press F5.
+- `extensions.json` recommends the Dart and Flutter extensions.
+
 ### Generated files are committed
 
 `*.g.dart`, `*.freezed.dart` and `lib/l10n/app_localizations*.dart` are checked in, so the project builds on a fresh clone and PR diffs show what generation changed. If you edit an annotated source or an ARB file, regenerate and commit the output. CI runs the generators and fails if `git status --porcelain` is not empty, so stale and never-committed generated files are both caught.
