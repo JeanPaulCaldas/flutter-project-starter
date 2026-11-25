@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_starter/app/app.dart';
+import 'package:flutter_starter/app/theme.dart';
 import 'package:flutter_starter/features/posts/data/repositories/posts_repository_impl.dart';
 import 'package:flutter_starter/features/posts/domain/entities/post.dart';
 import 'package:flutter_starter/features/posts/domain/repositories/posts_repository.dart';
+import 'package:flutter_starter/features/posts/presentation/screens/post_detail_screen.dart';
 import 'package:flutter_starter/features/settings/data/settings_repository.dart';
 import 'package:flutter_starter/features/settings/presentation/theme_mode_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,6 +69,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Body text'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PostDetailScreen), findsNothing);
+    expect(find.text('Posts'), findsOneWidget);
+    expect(find.text('Hello post'), findsOneWidget);
+  });
+
+  testWidgets('uses the light and dark themes from AppTheme', (tester) async {
+    await pumpAppWidget(tester);
+
+    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(app.theme, AppTheme.light);
+    expect(app.darkTheme, AppTheme.dark);
   });
 
   testWidgets('applies the initial theme mode', (tester) async {

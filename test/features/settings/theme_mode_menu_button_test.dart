@@ -14,6 +14,23 @@ class _MockSettingsRepository extends Mock implements SettingsRepository;
 void main() {
   setUpAll(() => registerFallbackValue(ThemeMode.system));
 
+  testWidgets('the current mode is the menu initialValue', (tester) async {
+    final repo = _MockSettingsRepository();
+    await tester.pumpApp(
+      const ThemeModeMenuButton(),
+      overrides: [
+        settingsRepositoryProvider.overrideWithValue(repo),
+        initialThemeModeProvider.overrideWithValue(ThemeMode.light),
+      ],
+    );
+
+    final menu = tester.widget<PopupMenuButton<ThemeMode>>(
+      find.byType(PopupMenuButton<ThemeMode>),
+    );
+
+    expect(menu.initialValue, ThemeMode.light);
+  });
+
   testWidgets('selecting Dark updates the theme mode', (tester) async {
     final repo = _MockSettingsRepository();
     when(() => repo.setThemeMode(any())).thenAnswer((_) async {});

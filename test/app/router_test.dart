@@ -4,11 +4,14 @@ import 'package:flutter_starter/app/router.dart';
 import 'package:flutter_starter/features/posts/data/repositories/posts_repository_impl.dart';
 import 'package:flutter_starter/features/posts/domain/entities/post.dart';
 import 'package:flutter_starter/features/posts/domain/repositories/posts_repository.dart';
+import 'package:flutter_starter/features/settings/data/settings_repository.dart';
 import 'package:flutter_starter/l10n/app_localizations_en.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockPostsRepository extends Mock implements PostsRepository;
+
+class _MockSettingsRepository extends Mock implements SettingsRepository;
 
 void main() {
   final l10n = AppLocalizationsEn();
@@ -23,7 +26,12 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         retry: (_, _) => null,
-        overrides: [postsRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          postsRepositoryProvider.overrideWithValue(repo),
+          settingsRepositoryProvider.overrideWithValue(
+            _MockSettingsRepository(),
+          ),
+        ],
         child: const App(),
       ),
     );
