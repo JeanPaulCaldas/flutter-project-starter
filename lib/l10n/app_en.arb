@@ -1,0 +1,27 @@
+{
+  "@@locale": "en",
+  "appTitle": "Flutter Starter",
+  "postsTitle": "Posts",
+  "postDetailTitle": "Post",
+  "retry": "Retry",
+  "emptyPosts": "There are no posts yet.",
+  "errorNetwork": "Can't reach the server. Check your connection and try again.",
+  "errorServer": "The server returned an error ({statusCode}). Please try again later.",
+  "@errorServer": {
+    "placeholders": {
+      "statusCode": {
+        "type": "String"
+      }
+    }
+  },
+  "errorServerUnknownStatus": "The server returned an error. Please try again later.",
+  "errorNotFound": "We couldn't find what you were looking for.",
+  "errorParsing": "The server sent a response we couldn't read.",
+  "errorUnknown": "Something went wrong. Please try again.",
+  "pageNotFound": "Page not found",
+  "goHome": "Go to home",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeMenuTooltip": "Change theme"
+}
