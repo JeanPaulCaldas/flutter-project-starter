@@ -43,7 +43,9 @@ void main() {
       ),
     );
 
-    final texts = tester.widgetList<Text>(find.text(long));
+    final finder = find.text(long);
+    expect(finder, findsNWidgets(2));
+    final texts = tester.widgetList<Text>(finder);
     expect(texts.map((t) => t.maxLines), everyElement(2));
   });
 }

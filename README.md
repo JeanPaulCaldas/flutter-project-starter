@@ -244,7 +244,7 @@ Preferences follow one pattern, shown by the theme mode:
 
 1. **`AppPreferences`** (`lib/core/storage/app_preferences.dart`) wraps `SharedPreferencesAsync` with typed methods per key. It stores primitives only (the theme is saved as its name string).
 2. **A repository** (`features/settings/data/settings_repository.dart`) maps primitives to app types (`ThemeMode`, falling back to `ThemeMode.system` for missing or unknown values). Only repositories touch `AppPreferences`.
-3. **A controller** (`features/settings/presentation/theme_mode_controller.dart`), a `@riverpod` Notifier, holds the current value, updates `state` immediately and then persists through the repository.
+3. **A controller** (`features/settings/presentation/theme_mode_controller.dart`), a `@riverpod` Notifier, holds the current value, updates `state` immediately and then persists through the repository. If saving fails, the error is reported with `FlutterError.reportError` (never rethrown) and the new value stays for the session.
 4. If the value is needed at boot, `main()` reads it through the repository and overrides an `initial...Provider`. That read must not throw (`getThemeMode` falls back to `ThemeMode.system` on any failure), so a broken preference never stops `runApp`.
 
 To add a preference: add a key plus getter/setter to `AppPreferences`, map it in a repository, expose a controller.

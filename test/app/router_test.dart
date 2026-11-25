@@ -7,6 +7,7 @@ import 'package:flutter_starter/features/posts/domain/repositories/posts_reposit
 import 'package:flutter_starter/features/settings/data/settings_repository.dart';
 import 'package:flutter_starter/l10n/app_localizations_en.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockPostsRepository extends Mock implements PostsRepository;
@@ -16,8 +17,12 @@ class _MockSettingsRepository extends Mock implements SettingsRepository;
 void main() {
   final l10n = AppLocalizationsEn();
 
+  setUpAll(() => registerFallbackValue(ThemeMode.system));
+
   Future<ProviderContainer> pumpApp(WidgetTester tester) async {
     final repo = _MockPostsRepository();
+    final settings = _MockSettingsRepository();
+    when(() => settings.setThemeMode(any())).thenAnswer((_) async {});
     when(repo.getPosts).thenAnswer(
       (_) async => const [
         Post(id: 1, userId: 1, title: 'Hello post', body: 'Body text'),
@@ -28,9 +33,7 @@ void main() {
         retry: (_, _) => null,
         overrides: [
           postsRepositoryProvider.overrideWithValue(repo),
-          settingsRepositoryProvider.overrideWithValue(
-            _MockSettingsRepository(),
-          ),
+          settingsRepositoryProvider.overrideWithValue(settings),
         ],
         child: const App(),
       ),
