@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_starter/core/storage/app_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +21,22 @@ void main() {
   test('setThemeMode persists the value', () async {
     await preferences.setThemeMode('dark');
 
+    expect(await preferences.getThemeMode(), 'dark');
+  });
+
+  test('writing the theme mode twice keeps the last value', () async {
+    await preferences.setThemeMode('dark');
+    await preferences.setThemeMode('light');
+
+    expect(await preferences.getThemeMode(), 'light');
+  });
+
+  test('appPreferencesProvider reads and writes the shared storage', () async {
+    final container = ProviderContainer.test(retry: (_, _) => null);
+
+    await container.read(appPreferencesProvider).setThemeMode('dark');
+
+    expect(await container.read(appPreferencesProvider).getThemeMode(), 'dark');
     expect(await preferences.getThemeMode(), 'dark');
   });
 }

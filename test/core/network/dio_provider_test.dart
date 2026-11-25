@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_starter/core/config/env.dart';
 import 'package:flutter_starter/core/network/dio_provider.dart';
@@ -17,6 +18,16 @@ void main() {
     expect(options.connectTimeout, const Duration(seconds: 10));
     expect(options.receiveTimeout, const Duration(seconds: 15));
     expect(options.headers['Accept'], 'application/json');
+  });
+
+  test('dio logs requests in debug mode', () {
+    final container = ProviderContainer.test(retry: (_, _) => null);
+
+    expect(kDebugMode, isTrue);
+    expect(
+      container.read(dioProvider).interceptors.whereType<LogInterceptor>(),
+      hasLength(1),
+    );
   });
 
   test('dio is closed when its container is disposed', () {

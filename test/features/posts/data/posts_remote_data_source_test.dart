@@ -78,6 +78,13 @@ void main() {
     await expectLater(source.fetchPosts(), throwsA(isA<ParsingException>()));
   });
 
+  test('fetchPosts throws ParsingException for a non-object item', () async {
+    when(() => dio.get<dynamic>('/posts'))
+        .thenAnswer((_) async => _ok('/posts', [1]));
+
+    await expectLater(source.fetchPosts(), throwsA(isA<ParsingException>()));
+  });
+
   test('fetchPost throws ParsingException on ill-typed JSON', () async {
     when(() => dio.get<dynamic>('/posts/1'))
         .thenAnswer((_) async => _ok('/posts/1', {'id': 'x'}));
