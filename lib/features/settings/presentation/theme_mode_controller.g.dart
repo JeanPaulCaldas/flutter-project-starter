@@ -91,7 +91,7 @@ final class ThemeModeControllerProvider
 }
 
 String _$themeModeControllerHash() =>
-    r'952b821b8b8631ca12899040e13c8714e699a5b1';
+    r'34e86e98707555eef6f15f409e888390fd622dbc';
 
 /// Holds the current [ThemeMode] and persists changes.
 

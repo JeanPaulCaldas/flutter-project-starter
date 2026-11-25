@@ -41,4 +41,23 @@ void main() {
     expect(container.read(themeModeControllerProvider), ThemeMode.light);
     verify(() => repo.setThemeMode(ThemeMode.light)).called(1);
   });
+
+  test('keeps the new mode and does not throw when saving fails', () async {
+    when(() => repo.setThemeMode(any())).thenAnswer((_) async {
+      throw StateError('disk full');
+    });
+    final reported = <FlutterErrorDetails>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = reported.add;
+    addTearDown(() => FlutterError.onError = previous);
+    final container = makeContainer();
+
+    await container
+        .read(themeModeControllerProvider.notifier)
+        .setThemeMode(ThemeMode.light);
+
+    expect(container.read(themeModeControllerProvider), ThemeMode.light);
+    expect(reported, hasLength(1));
+    expect(reported.single.exception, isStateError);
+  });
 }
