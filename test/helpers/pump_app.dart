@@ -9,8 +9,8 @@ extension PumpApp on WidgetTester {
     Widget widget, {
     List<Override> overrides = const [],
     Locale locale = const Locale('en'),
-  }) {
-    return pumpWidget(
+  }) async {
+    await pumpWidget(
       ProviderScope(
         retry: (_, _) => null,
         overrides: overrides,
@@ -24,6 +24,7 @@ extension PumpApp on WidgetTester {
           home: widget,
         ),
       ),
-    ).then((_) => pump());
+    );
+    await pump();
   }
 }

@@ -65,8 +65,12 @@ void main() {
     });
 
     test('maps unknown with other error to UnknownException', () {
-      final e = _dioError(DioExceptionType.unknown, error: StateError('x'));
-      expect(e.toAppException(), isA<UnknownException>());
+      final cause = StateError('x');
+      final e = _dioError(DioExceptionType.unknown, error: cause);
+      expect(
+        e.toAppException(),
+        isA<UnknownException>().having((u) => u.cause, 'cause', same(cause)),
+      );
     });
 
     test('maps cancel to UnknownException', () {

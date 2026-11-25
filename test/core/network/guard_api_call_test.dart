@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_starter/core/error/app_exception.dart';
 import 'package:flutter_starter/core/network/guard_api_call.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 Never _failToDecode() => throw const FormatException('bad json');
 
@@ -10,9 +11,9 @@ void main() {
     expect(await guardApiCall(() async => 42), 42);
   });
 
-  test('maps a 404 DioException to NotFoundException', () {
+  test('maps a 404 DioException to NotFoundException', () async {
     final options = RequestOptions(path: '/x');
-    expect(
+    await expectLater(
       guardApiCall<int>(
         () async => throw DioException.badResponse(
           statusCode: 404,
@@ -24,29 +25,43 @@ void main() {
     );
   });
 
-  test('maps TypeError to ParsingException', () {
-    expect(
+  test('maps TypeError to ParsingException', () async {
+    await expectLater(
       guardApiCall<int>(() async => throw TypeError()),
       throwsA(isA<ParsingException>()),
     );
   });
 
-  test('maps FormatException to ParsingException', () {
-    expect(
+  test('maps FormatException to ParsingException', () async {
+    await expectLater(
       guardApiCall<int>(() async => throw const FormatException()),
       throwsA(isA<ParsingException>()),
     );
   });
 
-  test('rethrows an AppException unchanged', () {
-    expect(
+  test('maps CheckedFromJsonException to ParsingException', () async {
+    await expectLater(
+      guardApiCall<int>(
+        () async => throw CheckedFromJsonException(
+          <String, dynamic>{'id': 'x'},
+          'id',
+          'PostDto',
+          "type 'String' is not a subtype of type 'int'",
+        ),
+      ),
+      throwsA(isA<ParsingException>()),
+    );
+  });
+
+  test('rethrows an AppException unchanged', () async {
+    await expectLater(
       guardApiCall<int>(() async => throw const NetworkException()),
       throwsA(isA<NetworkException>()),
     );
   });
 
-  test('maps any other error to UnknownException', () {
-    expect(
+  test('maps any other error to UnknownException', () async {
+    await expectLater(
       guardApiCall<int>(() async => throw StateError('boom')),
       throwsA(
         isA<UnknownException>().having((e) => e.cause, 'cause', isStateError),
