@@ -30,6 +30,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('shows loading while the post is fetched', (tester) async {
+    when(() => repo.getPost(1)).thenAnswer((_) => Completer<Post>().future);
+
+    await tester.pumpApp(
+      const PostDetailScreen(postId: 1),
+      overrides: [postsRepositoryProvider.overrideWithValue(repo)],
+    );
+
+    expect(find.byType(LoadingView), findsOneWidget);
+  });
+
   testWidgets('shows title and body', (tester) async {
     when(() => repo.getPost(1)).thenAnswer((_) async => post);
 
