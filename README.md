@@ -111,11 +111,11 @@ class const Post({
 }) with _$Post;
 ```
 
-A DTO adds an explicit `@JsonSerializable()` and a `factory fromJson` in the class body (`data/models/post_dto.dart`):
+A DTO adds an explicit `@JsonSerializable(createToJson: false)` (the app only reads JSON) and a `factory fromJson` in the class body (`data/models/post_dto.dart`):
 
 ```dart
 @freezed
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class const PostDto({
   required final int id,
   // ...
@@ -277,7 +277,7 @@ Example: a `comments` feature that reads from the API.
 
 1. **Folder**: `lib/features/comments/` with `data/`, `presentation/`, and `domain/` only if you have entities or contracts to abstract (see "The domain layer is optional").
 2. **Entity and contract** (if domain): a Freezed entity and an `abstract interface class CommentsRepository`.
-3. **DTO**: `data/models/comment_dto.dart` with `@freezed @JsonSerializable()`, `fromJson` and `toEntity()`.
+3. **DTO**: `data/models/comment_dto.dart` with `@freezed @JsonSerializable(createToJson: false)`, `fromJson` and `toEntity()`.
 4. **Data source**: `data/datasources/...`, calling `ref.watch(dioProvider)` and wrapping calls in `guardApiCall`. Add its `@riverpod` provider.
 5. **Repository implementation** and its `@riverpod` provider, typed as the domain contract.
 6. **UI providers**: `presentation/providers/..._providers.dart` calling the repository.
@@ -302,7 +302,7 @@ The package is `flutter_starter`, the org `com.example`.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on pushes and pull requests to `main`. It reads the Flutter version from `.fvmrc`, then runs: `pub get`, `build_runner build -d`, a clean-tree check (`git status --porcelain` must print nothing, so generated files must be committed and up to date; on failure it prints the offending files), `dart format --set-exit-if-changed .`, `flutter analyze`, `flutter test`. Superseded runs on the same ref are cancelled.
+`.github/workflows/ci.yml` runs on pushes and pull requests to `main`. It reads the Flutter version from `.fvmrc`, then runs: `pub get`, `build_runner build -d`, a clean-tree check (`git status --porcelain` must print nothing, so generated files must be committed and up to date; on failure it prints the offending files), `dart format --set-exit-if-changed .`, `flutter analyze`, `flutter test`. Superseded pull-request runs on the same ref are cancelled; pushes to `main` always run to completion.
 
 Run the same sequence locally before pushing (commit your work first, or the clean-tree check fails on it):
 
