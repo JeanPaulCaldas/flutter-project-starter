@@ -32,7 +32,7 @@ While developing, `fvm dart run build_runner watch -d` regenerates code on save.
 
 `.vscode/` is committed:
 
-- `settings.json` points the Dart/Flutter extension at the fvm-pinned SDK (`"dart.flutterSdkPath": ".fvm/flutter_sdk"`). Run `fvm install` first so the `.fvm/flutter_sdk` link exists. Without this setting VS Code uses your global Flutter, and an older SDK reports errors such as "This requires the experimental 'primary-constructors' language feature" on the Freezed models. Reload the window after `fvm install`.
+- `settings.json` points the Dart/Flutter extension at the fvm-pinned SDK (`"dart.flutterSdkPath": ".fvm/versions/3.50.1"`). fvm writes this path itself on `fvm install` / `fvm use`, so a version bump updates it automatically; commit the change with the `.fvmrc` bump. Run `fvm install` first so the `.fvm/versions/<version>` link exists. Without this setting VS Code uses your global Flutter, and an older SDK reports errors such as "This requires the experimental 'primary-constructors' language feature" on the Freezed models. Reload the window after `fvm install`.
 - `launch.json` has **Debug**, **Profile** and **Release** configurations, all passing `--dart-define-from-file=config/dev.json`. Pick the device in the status bar and press F5.
 - `extensions.json` recommends the Dart and Flutter extensions.
 
